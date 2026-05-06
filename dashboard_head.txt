@@ -1,0 +1,187 @@
+﻿{% extends 'store/base.html' %}
+{% block content %}
+<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
+    <div>
+        <h1 class="display-5 fw-bold">Dashboard</h1>
+        <p class="text-white">Overview of stores, inventory and active stores.</p>
+    </div>
+    <div class="text-white">
+        <p class="mb-1">Today is {% now "F j, Y" %}</p>
+        <p class="mb-0">Keep track of your store performance at a glance.</p>
+    </div>
+</div>
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card metric-card p-3 bg-white">
+            <div class="card-body">
+                <p class="text-uppercase text-secondary mb-2">Products</p>
+                <h2 class="display-6 mb-1">{{ total_products }}</h2>
+                <p class="mb-0 text-muted">Items currently registered in the system.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card metric-card p-3 bg-white">
+            <div class="card-body">
+                <p class="text-uppercase text-secondary mb-2">Orders</p>
+                <h2 class="display-6 mb-1">{{ total_orders }}</h2>
+                <p class="mb-0 text-muted">Total orders placed across stores.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card metric-card p-3 bg-white">
+            <div class="card-body">
+                <p class="text-uppercase text-secondary mb-2">Low stock</p>
+                <h2 class="display-6 mb-1">{{ low_stock_products }}</h2>
+                <p class="mb-0 text-muted">Products that need restocking.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="card metric-card p-3 bg-white">
+            <div class="card-body">
+                <p class="text-uppercase text-secondary mb-2">Stores</p>
+                <h2 class="display-6 mb-1">{{ stores.count }}</h2>
+                <p class="mb-0 text-muted">Active stores in the system.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0">Store Performance</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="storeChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0">Profit Overview</h5>
+            </div>
+            <div class="card-body">
+                <h6>AgriPets Store</h6>
+                <div class="d-grid gap-2 mb-3">
+                    <a href="{% url 'store:profit' %}?store=agripet&period=today"
+                        class="btn btn-outline-primary">Today</a>
+                    <a href="{% url 'store:profit' %}?store=agripet&period=week" class="btn btn-outline-primary">This
+                        Week</a>
+                    <a href="{% url 'store:profit' %}?store=agripet&period=month" class="btn btn-outline-primary">This
+                        Month</a>
+                </div>
+                <h6>Cebuana Store</h6>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'store:profit' %}?store=cebuanapadala&period=today"
+                        class="btn btn-outline-success">Today</a>
+                    <a href="{% url 'store:profit' %}?store=cebuanapadala&period=week"
+                        class="btn btn-outline-success">This Week</a>
+                    <a href="{% url 'store:profit' %}?store=cebuanapadala&period=month"
+                        class="btn btn-outline-success">This Month</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0">Recent Orders</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order</th>
+                            <th>Store</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>{{ order.order_number }}</td>
+                            <td>{{ order.store.name }}</td>
+                            <td>{{ order.get_status_display }}</td>
+                            <td>Γé▒{{ order.total_amount }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">No recent orders yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0">Latest Products</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Store</th>
+                            <th>Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in latest_products %}
+                        <tr>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.store.name }}</td>
+                            <td>{{ product.stock_in_sacks }} sacks</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">No products available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('storeChart').getContext('2d');
+        const storeData = {
+            labels: {{ store_names| safe}},
+        datasets: [{
+            label: 'Products per Store',
+        data: {{ store_product_counts| safe}},
+        backgroundColor: 'rgba(25, 135, 84, 0.8)',
+        borderColor: 'rgba(25, 135, 84, 1)',
+        borderWidth: 1
+        }]
+    };
+        new Chart(ctx, {
+            type: 'bar',
+        data: storeData,
+        options: {
+            responsive: true,
+        scales: {
+            y: {
+            beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+</script>
+{% endblock %}
